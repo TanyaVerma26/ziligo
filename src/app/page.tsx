@@ -1,5 +1,7 @@
+
 import { Suspense } from "react";
 import AuthNav from "../components/AuthNav";
+import ReportInterest from "../components/ReportInterest";
 
 export default function Home() {
   return (
@@ -53,8 +55,6 @@ export default function Home() {
 
           {/* Authentication and exploration links */}
           <div className="flex shrink-0 items-center gap-3 sm:gap-5">
-            {/* Shows SIGN IN, or DASHBOARD + LOG OUT when signed in.
-                The fallback is the normal SIGN IN link, so there is no flash. */}
             <Suspense
               fallback={
                 <a
@@ -299,6 +299,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* NEW: REPORT INTEREST */}
+      <ReportInterest />
 
       {/* FINAL CTA */}
       <section
