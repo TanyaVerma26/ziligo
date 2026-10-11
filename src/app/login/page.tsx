@@ -1,6 +1,4 @@
-
 "use client";
-
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
@@ -79,6 +77,32 @@ export default function LoginPage() {
     setMode(nextMode);
     setErrorMessage("");
     setSuccessMessage("");
+  }
+
+  async function handleOAuth(provider: "google" | "github") {
+    setLoading(true);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    try {
+      const supabase = createClient();
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) {
+        setErrorMessage(error.message);
+        setLoading(false);
+      }
+      // On success the browser leaves for Google/GitHub, so nothing else runs here.
+    } catch {
+      setErrorMessage("We couldn't start the sign-in. Please try again.");
+      setLoading(false);
+    }
   }
 
   return (
@@ -231,6 +255,34 @@ export default function LoginPage() {
               </span>
             </button>
           </form>
+
+          <div className="my-6 flex items-center gap-4">
+            <span className="h-px flex-1 bg-white/15" />
+            <span className="text-[10px] tracking-[0.2em] text-white/40">
+              OR
+            </span>
+            <span className="h-px flex-1 bg-white/15" />
+          </div>
+
+          <div className="grid gap-3">
+            <button
+              type="button"
+              onClick={() => handleOAuth("google")}
+              disabled={loading}
+              className="w-full border border-white/20 px-5 py-3.5 text-xs font-semibold tracking-[0.12em] transition hover:border-white/50 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              CONTINUE WITH GOOGLE
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleOAuth("github")}
+              disabled={loading}
+              className="w-full border border-white/20 px-5 py-3.5 text-xs font-semibold tracking-[0.12em] transition hover:border-white/50 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              CONTINUE WITH GITHUB
+            </button>
+          </div>
 
           <p className="mt-6 text-xs leading-5 text-white/40">
             Your account will be handled by Supabase Authentication.
