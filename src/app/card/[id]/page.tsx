@@ -288,9 +288,11 @@ async function CardContent({
     `AI ${ai}% · Coding ${coding}% · Career ${career}%.\n` +
     "Find your signal.";
 
-  const xShareUrl =
-    `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}` +
-    `&url=${encodeURIComponent(shareUrl)}`;
+ 
+const xShareUrl =
+  `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}` +
+  `&url=${encodeURIComponent(shareUrl)}`;
+
 
   return (
     <article className="relative isolate w-full max-w-5xl overflow-hidden rounded-[26px] border border-white/[0.12] bg-[#0B0D12] text-white shadow-[0_32px_100px_rgba(0,0,0,0.55)]">
