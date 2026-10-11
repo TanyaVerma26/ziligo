@@ -91,6 +91,9 @@ export default function LoginPage() {
         provider,
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          // Always let the user pick which Google account to use
+          queryParams:
+            provider === "google" ? { prompt: "select_account" } : undefined,
         },
       });
 
