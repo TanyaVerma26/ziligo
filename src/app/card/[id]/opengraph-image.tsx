@@ -1,4 +1,3 @@
-
 import { ImageResponse } from "next/og";
 import { connection } from "next/server";
 import { createClient } from "../../../lib/supabase/server";
@@ -9,30 +8,73 @@ export const contentType = "image/png";
 
 type Card = {
   display_name: string;
-  ai_pct: number;
-  coding_pct: number;
-  career_pct: number;
+  ai_pct: number | string | null;
+  coding_pct: number | string | null;
+  career_pct: number | string | null;
   archetype: string;
 };
 
 const UUID =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function getCard(id: string): Promise<Card | null> {
-  if (!UUID.test(id)) return null;
+  if (!UUID.test(id)) {
+    console.log("[OG DEBUG] Invalid card UUID");
+    return null;
+  }
 
   await connection();
 
   const supabase = await createClient();
+
   const { data, error } = await supabase.rpc("get_shared_card", {
     card_id: id,
   });
+
+  console.log("[OG DEBUG]", {
+    id,
+    hasError: !!error,
+    errorMessage: error?.message ?? null,
+    isArray: Array.isArray(data),
+    rowCount: Array.isArray(data) ? data.length : null,
+    firstRowKeys:
+      Array.isArray(data) && data.length > 0
+        ? Object.keys(data[0])
+        : [],
+  });
+
+  console.log("[OG DATA]", JSON.stringify(data));
+  console.log("[OG ERROR]", error);
 
   if (error || !Array.isArray(data) || data.length === 0) {
     return null;
   }
 
-  return data[0] as Card;
+  const row = data[0];
+
+  return {
+    display_name: String(row.display_name ?? "ZILIGO MEMBER"),
+    ai_pct: row.ai_pct,
+    coding_pct: row.coding_pct,
+    career_pct: row.career_pct,
+    archetype: String(row.archetype ?? "YOUR ARCHETYPE"),
+  };
+}
+
+function clamp(
+  value: number | string | null | undefined
+): number | null {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  const numericValue = Number(value);
+
+  if (!Number.isFinite(numericValue)) {
+    return null;
+  }
+
+  return Math.round(Math.max(0, Math.min(100, numericValue)));
 }
 
 function CatMascot() {
@@ -77,15 +119,46 @@ function CatMascot() {
         strokeWidth="3"
       />
 
-      <ellipse cx="94" cy="190" rx="19" ry="9" fill="#FFFDF6" stroke="#171717" strokeWidth="2" />
-      <ellipse cx="146" cy="190" rx="19" ry="9" fill="#FFFDF6" stroke="#171717" strokeWidth="2" />
+      <ellipse
+        cx="94"
+        cy="190"
+        rx="19"
+        ry="9"
+        fill="#FFFDF6"
+        stroke="#171717"
+        strokeWidth="2"
+      />
+      <ellipse
+        cx="146"
+        cy="190"
+        rx="19"
+        ry="9"
+        fill="#FFFDF6"
+        stroke="#171717"
+        strokeWidth="2"
+      />
 
       <path d="M120 45 V29" stroke="#171717" strokeWidth="3" />
-      <rect x="112" y="18" width="16" height="13" rx="3" fill="#FFD84D" stroke="#171717" strokeWidth="2.5" />
+      <rect
+        x="112"
+        y="18"
+        width="16"
+        height="13"
+        rx="3"
+        fill="#FFD84D"
+        stroke="#171717"
+        strokeWidth="2.5"
+      />
       <rect x="118" y="22" width="4" height="4" fill="#171717" />
 
-      <path d="M29 72 L34 84 L46 89 L34 94 L29 106 L24 94 L12 89 L24 84 Z" fill="#8AB4F8" />
-      <path d="M204 73 L208 82 L217 86 L208 90 L204 99 L200 90 L191 86 L200 82 Z" fill="#C5A4FF" />
+      <path
+        d="M29 72 L34 84 L46 89 L34 94 L29 106 L24 94 L12 89 L24 84 Z"
+        fill="#8AB4F8"
+      />
+      <path
+        d="M204 73 L208 82 L217 86 L208 90 L204 99 L200 90 L191 86 L200 82 Z"
+        fill="#C5A4FF"
+      />
       <rect x="28" y="132" width="7" height="7" fill="#81C995" />
       <rect x="207" y="127" width="7" height="7" fill="#8AB4F8" />
     </svg>
@@ -184,17 +257,34 @@ export default async function Image({
   const { id } = await params;
   const card = await getCard(id);
 
-  const clamp = (value: number | null | undefined) =>
-    typeof value === "number" && Number.isFinite(value)
-      ? Math.round(Math.max(0, Math.min(100, value)))
-      : null;
-
   const ai = clamp(card?.ai_pct);
   const coding = clamp(card?.coding_pct);
   const career = clamp(card?.career_pct);
 
-  const handle = card ? `@${card.display_name}` : "ZILIGO MEMBER";
+  // Normalize and limit display names to protect the layout.
+  const MAX_DISPLAY_NAME_LENGTH = 22;
+  const rawDisplayName = (card?.display_name ?? "").trim();
+  const displayName = rawDisplayName
+    .slice(0, MAX_DISPLAY_NAME_LENGTH)
+    .trim();
+
+  const handle = displayName
+    ? `@${displayName}${rawDisplayName.length > MAX_DISPLAY_NAME_LENGTH ? "…" : ""}`
+    : "ZILIGO MEMBER";
+
   const archetype = card?.archetype ?? "YOUR ARCHETYPE";
+
+  console.log("[OG SCORES]", {
+    id,
+    cardFound: !!card,
+    ai,
+    coding,
+    career,
+    rawAi: card?.ai_pct,
+    rawCoding: card?.coding_pct,
+    rawCareer: card?.career_pct,
+    displayNameLength: rawDisplayName.length,
+  });
 
   return new ImageResponse(
     (
@@ -295,6 +385,7 @@ export default async function Image({
             </div>
           </div>
 
+          {/* Headline, identity, and mascot */}
           <div
             style={{
               display: "flex",
@@ -305,12 +396,12 @@ export default async function Image({
               marginBottom: 4,
             }}
           >
-            {/* Headline and identity */}
             <div
               style={{
                 display: "flex",
                 flexDirection: "column",
                 width: 700,
+                minWidth: 0,
               }}
             >
               <div
@@ -341,7 +432,7 @@ export default async function Image({
                 <span
                   style={{
                     display: "flex",
-                    width: "fit-content",
+                    width: "auto",
                     marginTop: 5,
                     color: "#8AB4F8",
                   }}
@@ -361,18 +452,22 @@ export default async function Image({
                 Your AI. Your code. Your next move.
               </div>
 
+              {/* Identity row: constrained name and archetype */}
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
                   gap: 12,
                   marginTop: 21,
+                  maxWidth: 690,
                 }}
               >
                 <div
                   style={{
                     display: "flex",
+                    flexShrink: 1,
                     maxWidth: 420,
+                    minWidth: 0,
                     padding: "9px 13px",
                     borderRadius: 8,
                     border: "1px solid #34445F",
@@ -380,6 +475,9 @@ export default async function Image({
                     color: "#8AB4F8",
                     fontSize: 12,
                     fontWeight: 800,
+                    overflow: "hidden",
+                    whiteSpace: "nowrap",
+                    textOverflow: "ellipsis",
                   }}
                 >
                   {archetype}
@@ -388,9 +486,15 @@ export default async function Image({
                 <div
                   style={{
                     display: "flex",
+                    flexShrink: 1,
+                    minWidth: 0,
+                    maxWidth: 230,
                     color: "#BAC3D2",
                     fontSize: 13,
                     fontWeight: 600,
+                    overflow: "hidden",
+                    whiteSpace: "nowrap",
+                    textOverflow: "ellipsis",
                   }}
                 >
                   {handle}
@@ -398,7 +502,6 @@ export default async function Image({
               </div>
             </div>
 
-            {/* Mascot on a dark panel */}
             <div
               style={{
                 display: "flex",
@@ -407,6 +510,7 @@ export default async function Image({
                 justifyContent: "center",
                 width: 280,
                 height: 240,
+                flexShrink: 0,
                 borderRadius: 28,
                 background: "#111620",
                 border: "1px solid #292F3C",
@@ -437,16 +541,8 @@ export default async function Image({
               marginTop: 4,
             }}
           >
-            <ScorePanel
-              label="AI FLUENCY"
-              score={ai}
-              color="#8AB4F8"
-            />
-            <ScorePanel
-              label="CODING"
-              score={coding}
-              color="#81C995"
-            />
+            <ScorePanel label="AI FLUENCY" score={ai} color="#8AB4F8" />
+            <ScorePanel label="CODING" score={coding} color="#81C995" />
             <ScorePanel
               label="CAREER READINESS"
               score={career}
