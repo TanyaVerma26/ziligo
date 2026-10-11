@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { createClient } from "../../lib/supabase/server";
 import { ASSESSMENT_QUESTION_BANK } from "../../lib/assessment-question-bank";
+import ShareCardForm from "../../components/ShareCardForm";
 import {
   evaluateAssessment,
   getAssessmentStatus,
@@ -204,6 +205,13 @@ async function AuthenticatedDashboard() {
   ].filter(
     (link): link is { label: string; url: string } => link.url !== null
   );
+    const cardReady =
+    aiEvaluation.isCurrentVersion &&
+    aiEvaluation.isComplete &&
+    codingEvaluation.isCurrentVersion &&
+    codingEvaluation.isComplete &&
+    careerEvaluation.isCurrentVersion &&
+    careerEvaluation.isComplete;
 
   return (
     <>
@@ -505,6 +513,23 @@ async function AuthenticatedDashboard() {
             Complete the Career assessment to receive personalized next steps.
           </p>
         )}
+      </section>
+            {/* Shareable card */}
+      <section className="mt-10 border border-white/15 bg-white/[0.03] p-6 sm:p-9">
+        <p className="text-[10px] font-semibold tracking-[0.2em] text-fuchsia-300">
+          SHARE YOUR SCORE
+        </p>
+
+        <h2 className="mt-4 text-2xl font-medium uppercase">
+          Make your readiness card.
+        </h2>
+
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-white/55">
+          Get a public card with your three scores and your archetype. It shows
+          your handle and self-reported percentages only, with no email.
+        </p>
+
+        <ShareCardForm ready={cardReady} />
       </section>
 
       {/* Assessment entry points */}
