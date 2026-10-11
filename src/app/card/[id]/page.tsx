@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
 import { createClient } from "../../../lib/supabase/server";
+import ShareCardActions from "../../../components/ShareCardActions";
 
 type Card = {
   display_name: string;
@@ -84,6 +85,7 @@ function ZiloGpuMascot() {
       </defs>
 
       <ellipse cx="120" cy="112" rx="110" ry="105" fill="url(#gpuGlow)" />
+
       <ellipse
         cx="120"
         cy="194"
@@ -157,6 +159,7 @@ function ZiloGpuMascot() {
         strokeWidth="2"
       />
       <circle cx="90" cy="109" r="3" fill="#202124" />
+
       <path
         d="M100 109 Q103 112 106 109"
         fill="none"
@@ -171,6 +174,7 @@ function ZiloGpuMascot() {
         strokeWidth="2.2"
         strokeLinecap="round"
       />
+
       <circle cx="84" cy="114" r="2.4" fill="#FBBC04" opacity=".8" />
       <circle cx="107" cy="114" r="2.4" fill="#FBBC04" opacity=".8" />
 
@@ -271,7 +275,9 @@ async function CardContent({
   if (!card) notFound();
 
   const clampScore = (value: number) =>
-    Number.isFinite(value) ? Math.round(Math.max(0, Math.min(100, value))) : 0;
+    Number.isFinite(value)
+      ? Math.round(Math.max(0, Math.min(100, value)))
+      : 0;
 
   const ai = clampScore(card.ai_pct);
   const coding = clampScore(card.coding_pct);
@@ -288,15 +294,13 @@ async function CardContent({
     `AI ${ai}% · Coding ${coding}% · Career ${career}%.\n` +
     "Find your signal.";
 
- 
-const xShareUrl =
-  `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}` +
-  `&url=${encodeURIComponent(shareUrl)}`;
-
+  const xShareUrl =
+    `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}` +
+    `&url=${encodeURIComponent(shareUrl)}`;
 
   return (
     <article className="relative isolate w-full max-w-5xl overflow-hidden rounded-[26px] border border-white/[0.12] bg-[#0B0D12] text-white shadow-[0_32px_100px_rgba(0,0,0,0.55)]">
-      {/* Restrained ambient color — the content stays in control. */}
+      {/* Restrained ambient color */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -right-24 -top-24 -z-10 h-80 w-80 rounded-full bg-[#4285F4]/[0.13] blur-[100px]"
@@ -361,7 +365,7 @@ const xShareUrl =
           </div>
         </section>
 
-        {/* Main visual: scores, mascot and archetype */}
+        {/* Scores, mascot and archetype */}
         <section className="mt-8 grid items-center gap-4 sm:mt-10 md:grid-cols-[minmax(0,1fr)_190px_minmax(0,1fr)] md:gap-5 lg:gap-6">
           {/* Score panel */}
           <section className="min-w-0 overflow-hidden rounded-2xl border border-white/[0.10] bg-[#121620]/90">
@@ -375,7 +379,11 @@ const xShareUrl =
             <div className="space-y-6 p-4 sm:p-5">
               <ScoreSignal label="AI FLUENCY" value={ai} color="#8AB4F8" />
               <ScoreSignal label="CODING" value={coding} color="#81C995" />
-              <ScoreSignal label="CAREER READINESS" value={career} color="#C5A4FF" />
+              <ScoreSignal
+                label="CAREER READINESS"
+                value={career}
+                color="#C5A4FF"
+              />
             </div>
           </section>
 
@@ -468,7 +476,7 @@ const xShareUrl =
           </section>
         </section>
 
-        {/* Trust note and actions */}
+        {/* Trust note and share/download actions */}
         <footer className="mt-8 border-t border-white/[0.09] pt-5 sm:mt-9 sm:pt-6">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -481,22 +489,12 @@ const xShareUrl =
               </p>
             </div>
 
-            <div className="flex flex-col gap-2 min-[420px]:flex-row">
-              <a
-                href={xShareUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 px-5 py-3 text-[10px] font-bold tracking-[0.08em] text-white transition-colors hover:border-white/50 hover:bg-white/[0.06] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8AB4F8]"
-              >
-                SHARE ON X <span aria-hidden="true">↗</span>
-              </a>
-
-              <a
-                href="/login"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-[#8AB4F8] px-5 py-3 text-[10px] font-extrabold tracking-[0.06em] text-[#101725] transition-colors hover:bg-[#ADC9FF] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8AB4F8]"
-              >
-                GET YOUR SCORE <span aria-hidden="true">→</span>
-              </a>
+            <div className="min-w-0 flex-1 sm:max-w-2xl">
+              <ShareCardActions
+                imageUrl={`/card/${id}/opengraph-image`}
+                shareText={shareText}
+                xShareUrl={xShareUrl}
+              />
             </div>
           </div>
 
