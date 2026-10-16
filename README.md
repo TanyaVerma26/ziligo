@@ -1,3 +1,12 @@
+**ZILIGO — Know Your Skills. Prove Your Readiness.**
+
+ZILIGO is a skill-assessment platform designed to help students understand where they stand in the AI era. Through assessments covering AI skills, coding, and career readiness, ZILIGO turns self-evaluation into a personalized scorecard that highlights strengths and areas for improvement.
+
+The vision is simple: make career readiness more measurable, transparent, and actionable. Instead of guessing whether you're prepared for the opportunities ahead, get a clearer picture of your skills, share your results, and identify where you can grow next.
+
+**Assess yourself. Discover your gaps. Build your future.**
+
+Try ZILIGO: https://ziligo.vercel.app
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
